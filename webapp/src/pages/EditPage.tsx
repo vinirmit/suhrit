@@ -1,0 +1,158 @@
+import { z } from 'zod';
+import { useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+import { FormField } from '../components/form/FormField';
+import { useNotification } from '../hooks/useNotification';
+import { editPatient } from '../services/patients';
+import { formatDateInput } from '../utils/date';
+import type { Patient } from '../types/domain';
+
+const patientFormSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, 'First Name cannot be blank')
+    .regex(/^[A-Za-z\s]+$/, 'Only Alphabets are allowed in the Name'),
+  lastName: z
+    .string()
+    .min(1, 'Last Name cannot be blank')
+    .regex(/^[A-Za-z\s]+$/, 'Only Alphabets are allowed in the Name'),
+  gender: z.enum(['male', 'female', 'other']),
+  address: z.string().min(1, 'Address cannot be blank'),
+  dateofbirth: z.string().optional(),
+  mobile: z.string().regex(/^\d{10}$/, 'Mobile should have 10 digits'),
+  email: z.union([z.literal(''), z.string().email('Invalid email')]),
+});
+
+type PatientFormValues = z.infer<typeof patientFormSchema>;
+
+export default function EditPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { notify } = useNotification();
+  const handleNameInput = (event: React.FormEvent<HTMLInputElement>) => {
+    const nextValue = event.currentTarget.value.replace(/[^A-Za-z\s]/g, '');
+    event.currentTarget.value = nextValue;
+  };
+  const handleMobileInput = (event: React.FormEvent<HTMLInputElement>) => {
+    const nextValue = event.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+    event.currentTarget.value = nextValue;
+  };
+
+  const patient = useMemo<Patient>(() => {
+    const state = location.state as Patient | null;
+
+    return (
+      state ?? {
+        patientId: '',
+        firstName: '',
+        lastName: '',
+        address: '',
+        age: 0,
+        dateofbirth: '',
+        email: '',
+        mobile: '',
+        gender: 'male',
+      }
+    );
+  }, [location.state]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<PatientFormValues>({
+    resolver: zodResolver(patientFormSchema),
+    defaultValues: {
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      gender: patient.gender === 'female' || patient.gender === 'other' ? patient.gender : 'male',
+      address: patient.address,
+      dateofbirth: formatDateInput(patient.dateofbirth),
+      mobile: patient.mobile,
+      email: patient.email,
+    },
+  });
+
+  const onSubmit = handleSubmit(async (values) => {
+    const response = await editPatient({
+      patient: {
+        patientId: patient.patientId,
+        ...values,
+        email: values.email || undefined,
+        dateofbirth: values.dateofbirth || null,
+      },
+    });
+
+    if (response.success) {
+      notify('Patient details saved successfully', 'success');
+      navigate('/search');
+      return;
+    }
+
+    notify(response.message ?? 'Unable to save patient', 'error');
+  });
+
+  return (
+    <>
+      <section className="section-header">
+        <div>
+          <h2 className="section-title">Edit Patient Details</h2>
+          <p className="muted">The edit payload remains unchanged: `POST /patient/edit`.</p>
+        </div>
+      </section>
+
+      <section className="card pad-1">
+        <form className="grid grid--2" onSubmit={onSubmit}>
+          <FormField
+            label="First Name"
+            onInput={handleNameInput}
+            error={errors.firstName?.message}
+            {...register('firstName')}
+          />
+          <FormField
+            label="Last Name"
+            onInput={handleNameInput}
+            error={errors.lastName?.message}
+            {...register('lastName')}
+          />
+          <label className="field">
+            <span className="field__label">Gender</span>
+            <select className="field__control" {...register('gender')}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.gender?.message ? (
+              <span className="field__error">{errors.gender.message}</span>
+            ) : null}
+          </label>
+          <FormField
+            label="Date of Birth"
+            type="date"
+            error={errors.dateofbirth?.message}
+            {...register('dateofbirth')}
+          />
+          <FormField label="Address" error={errors.address?.message} {...register('address')} />
+          <FormField
+            label="Mobile"
+            inputMode="numeric"
+            maxLength={10}
+            pattern="[0-9]{10}"
+            onInput={handleMobileInput}
+            error={errors.mobile?.message}
+            {...register('mobile')}
+          />
+          <FormField label="Email" error={errors.email?.message} {...register('email')} />
+          <div className="actions">
+            <button className="button button--primary" disabled={isSubmitting} type="submit">
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </section>
+    </>
+  );
+}

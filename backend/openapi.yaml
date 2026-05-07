@@ -1,0 +1,656 @@
+openapi: 3.0.3
+info:
+  title: Suhrit Backend API
+  version: 1.0.0
+  description: OpenAPI contract for the TypeScript API Lambda routes.
+servers:
+  - url: https://api{environmentSuffix}.{domain}
+    description: Custom API Gateway domain
+    variables:
+      environmentSuffix:
+        default: -dev
+        description: Use an empty value for prod, or values like -dev and -qa for non-prod.
+      domain:
+        default: example.com
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com
+    description: Default API Gateway endpoint
+    variables:
+      apiId:
+        default: api-id
+      region:
+        default: ap-south-1
+security:
+  - cognitoJwt: []
+paths:
+  /user/details:
+    get:
+      tags: [User]
+      summary: Get authenticated user details
+      operationId: getUserDetails
+      responses:
+        "200":
+          description: Authenticated user details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDetailsResponse"
+  /patient/search:
+    post:
+      tags: [Patient]
+      summary: Search patients
+      operationId: searchPatients
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientSearchRequest"
+      responses:
+        "200":
+          description: Search result envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Patient"
+  /patient/register:
+    post:
+      tags: [Patient]
+      summary: Register a patient
+      operationId: registerPatient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPatientRequest"
+      responses:
+        "200":
+          description: Registration result envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseEnvelope"
+  /patient/edit:
+    post:
+      tags: [Patient]
+      summary: Edit a patient
+      operationId: editPatient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditPatientRequest"
+      responses:
+        "200":
+          description: Edit result envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseEnvelope"
+  /patient/history:
+    post:
+      tags: [Patient]
+      summary: Get patient history
+      operationId: getPatientHistory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientIdRequest"
+      responses:
+        "200":
+          description: Patient history envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/PatientHistory"
+  /patient/lastvisit:
+    post:
+      tags: [Patient]
+      summary: Get last patient visit
+      operationId: getPatientLastVisit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientIdRequest"
+      responses:
+        "200":
+          description: Last visit envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/Visit"
+  /visit/add:
+    post:
+      tags: [Visit]
+      summary: Add a patient to the visit queue
+      operationId: addVisitToQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddVisitRequest"
+      responses:
+        "200":
+          description: Queue add result envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseEnvelope"
+  /visit/queue:
+    get:
+      tags: [Visit]
+      summary: Get queued visits
+      operationId: getVisitQueue
+      responses:
+        "200":
+          description: Visit queue envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    required: [payload]
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/QueueVisit"
+  /visit/update:
+    post:
+      tags: [Visit]
+      summary: Update a queued visit
+      operationId: updateVisit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Visit"
+                - $ref: "#/components/schemas/KarmaVisit"
+      responses:
+        "200":
+          description: Update result envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseEnvelope"
+  /visit/process:
+    post:
+      tags: [Visit]
+      summary: Process a queued visit into patient history
+      operationId: processVisit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Visit"
+                - $ref: "#/components/schemas/KarmaVisit"
+      responses:
+        "200":
+          description: Process result envelope.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseEnvelope"
+  /report/range:
+    post:
+      tags: [Report]
+      summary: Get report for a date range
+      operationId: getRangeReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RangeReportRequest"
+      responses:
+        "200":
+          description: Report envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    properties:
+                      payload:
+                        $ref: "#/components/schemas/ReportPayload"
+  /util/medlist:
+    get:
+      tags: [Util]
+      summary: Get distinct medicine names
+      operationId: getMedicineList
+      responses:
+        "200":
+          description: Medicine list envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    required: [payload]
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          type: string
+  /util/taglist:
+    get:
+      tags: [Util]
+      summary: Get distinct profile tags and readings
+      operationId: getTagList
+      responses:
+        "200":
+          description: Tags/readings envelope.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseEnvelope"
+                  - type: object
+                    required: [payload]
+                    properties:
+                      payload:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+components:
+  securitySchemes:
+    cognitoJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito-issued JWT. Google is configured as the upstream Cognito identity provider.
+  schemas:
+    BaseEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        payload:
+          description: Endpoint-specific response payload.
+          nullable: true
+        user:
+          description: Authenticated user details.
+          nullable: true
+      additionalProperties: true
+    UserDetailsResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseEnvelope"
+        - type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/AuthenticatedUser"
+    AuthenticatedUser:
+      type: object
+      properties:
+        role:
+          type: string
+        tenant:
+          $ref: "#/components/schemas/TenantPrintDetails"
+      additionalProperties: true
+    TenantPrintDetails:
+      type: object
+      properties:
+        printLine1:
+          type: string
+        printLine2:
+          type: string
+        printLine3:
+          type: string
+      additionalProperties: true
+    PatientSearchRequest:
+      type: object
+      properties:
+        patientId:
+          oneOf:
+            - type: string
+            - type: number
+        mobile:
+          type: string
+        name:
+          type: string
+      additionalProperties: false
+    RegisterPatientRequest:
+      type: object
+      required: [patient]
+      properties:
+        patient:
+          $ref: "#/components/schemas/PatientInput"
+        payment:
+          type: number
+          default: 0
+    EditPatientRequest:
+      type: object
+      required: [patient]
+      properties:
+        patient:
+          allOf:
+            - $ref: "#/components/schemas/PatientInput"
+            - type: object
+              required: [patientId]
+    PatientIdRequest:
+      type: object
+      required: [patientId]
+      properties:
+        patientId:
+          oneOf:
+            - type: string
+            - type: number
+    PatientInput:
+      type: object
+      required: [firstName, lastName, dateofbirth, gender, address, mobile]
+      properties:
+        patientId:
+          oneOf:
+            - type: string
+            - type: number
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateofbirth:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          type: string
+        address:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+          format: email
+    Patient:
+      allOf:
+        - $ref: "#/components/schemas/PatientInput"
+        - type: object
+          required: [patientId, age, dateofbirth]
+          properties:
+            patientId:
+              oneOf:
+                - type: string
+                - type: number
+            age:
+              type: number
+            dateofbirth:
+              type: string
+              format: date
+    VisitProfile:
+      type: object
+      properties:
+        reason:
+          type: string
+        curMedcine:
+          type: string
+        diagnosis:
+          type: string
+        lastVisitDate:
+          type: string
+          format: date
+        exams:
+          type: object
+          additionalProperties:
+            type: string
+        readings:
+          type: object
+          additionalProperties:
+            type: string
+        history:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+      additionalProperties: true
+    Medicine:
+      type: object
+      properties:
+        name:
+          type: string
+        days:
+          type: number
+        frequency:
+          type: string
+        meal:
+          type: string
+        otherIns:
+          type: string
+      additionalProperties: true
+    Visit:
+      type: object
+      required: [patient, type, visitId, visitDate]
+      properties:
+        patient:
+          $ref: "#/components/schemas/Patient"
+        type:
+          type: string
+          example: visit
+        visitId:
+          type: number
+        visitDate:
+          type: string
+          format: date
+        lastVisitDate:
+          type: string
+          format: date
+        opdPayment:
+          type: number
+        profile:
+          $ref: "#/components/schemas/VisitProfile"
+        medicines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Medicine"
+        pathya:
+          type: array
+          items:
+            type: string
+        apathya:
+          type: array
+          items:
+            type: string
+        karms:
+          type: array
+          items:
+            type: string
+        aasans:
+          type: array
+          items:
+            type: string
+      additionalProperties: true
+    KarmaVisit:
+      type: object
+      required: [patient, type, visitId, visitDate]
+      properties:
+        patient:
+          $ref: "#/components/schemas/Patient"
+        type:
+          type: string
+          example: kvisit
+        visitId:
+          type: number
+        visitDate:
+          type: string
+          format: date
+        payment:
+          type: number
+        karms:
+          type: object
+          additionalProperties:
+            type: number
+        state:
+          type: boolean
+      additionalProperties: true
+    QueueVisit:
+      type: object
+      required: [patient, type, visitId, visitDate]
+      properties:
+        patient:
+          $ref: "#/components/schemas/Patient"
+        type:
+          type: string
+        visitId:
+          type: number
+        visitDate:
+          type: string
+          format: date
+        lastVisitDate:
+          type: string
+          format: date
+        opdPayment:
+          type: number
+        payment:
+          type: number
+        profile:
+          $ref: "#/components/schemas/VisitProfile"
+        medicines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Medicine"
+        pathya:
+          type: array
+          items:
+            type: string
+        apathya:
+          type: array
+          items:
+            type: string
+        karms:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: object
+              additionalProperties:
+                type: number
+        aasans:
+          type: array
+          items:
+            type: string
+        state:
+          type: boolean
+      additionalProperties: true
+    AddVisitRequest:
+      type: object
+      required: [patient, type]
+      properties:
+        patient:
+          $ref: "#/components/schemas/Patient"
+        type:
+          type: string
+          enum: [visit, kvisit]
+        payment:
+          type: number
+        opdPayment:
+          type: number
+      additionalProperties: true
+    PatientHistory:
+      type: object
+      required: [visits, kvisits]
+      properties:
+        visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Visit"
+        kvisits:
+          type: array
+          items:
+            $ref: "#/components/schemas/KarmaVisit"
+    RangeReportRequest:
+      type: object
+      required: [start_date, end_date]
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+    ReportPayload:
+      type: object
+      required: [totalOpdPayments, totalKarmaPayments, totalVisits, totalKVisits]
+      properties:
+        totalOpdPayments:
+          type: number
+        totalKarmaPayments:
+          type: number
+        totalVisits:
+          type: number
+        totalKVisits:
+          type: number
+        visitsList:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportVisitRow"
+        kvisitsList:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportKarmaRow"
+    ReportVisitRow:
+      type: object
+      properties:
+        patientId:
+          oneOf:
+            - type: string
+            - type: number
+        opdPayment:
+          type: number
+        firstName:
+          type: string
+        lastName:
+          type: string
+    ReportKarmaRow:
+      type: object
+      properties:
+        patientId:
+          oneOf:
+            - type: string
+            - type: number
+        payment:
+          type: number
+        firstName:
+          type: string
+        lastName:
+          type: string
+        karms:
+          type: object
+          additionalProperties:
+            type: number

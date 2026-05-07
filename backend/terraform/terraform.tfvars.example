@@ -1,0 +1,25 @@
+aws_region  = "ap-south-1"
+environment = "dev"
+domain_name = "example.com"
+
+route53_zone_id = "Z00000000000000000000"
+
+mongodb_instance      = "mongodb+srv://<user>:<password>@example.mongodb.net/?retryWrites=true&w=majority"
+mongodb_user          = "replace-me"
+mongodb_key           = "replace-me"
+mongodb_database_name = "replace-me"
+
+google_client_id     = "replace-me.apps.googleusercontent.com"
+google_client_secret = "replace-me"
+
+cognito_callback_urls = [
+  "http://localhost:5173",
+  "https://app.example.com"
+]
+
+cognito_logout_urls = [
+  "http://localhost:5173",
+  "https://app.example.com"
+]
+
+cors_allow_origins = ["*"]
