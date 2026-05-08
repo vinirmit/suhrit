@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FormField } from '../components/form/FormField';
 import { useNotification } from '../hooks/useNotification';
 import { editPatient } from '../services/patients';
-import { formatDateInput } from '../utils/date';
+import { formatDateTimeInput, nowDateTimeInput, toApiDateTime } from '../utils/date';
 import type { Patient } from '../types/domain';
 
 const patientFormSchema = z.object({
@@ -21,7 +21,7 @@ const patientFormSchema = z.object({
     .regex(/^[A-Za-z\s]+$/, 'Only Alphabets are allowed in the Name'),
   gender: z.enum(['male', 'female', 'other']),
   address: z.string().min(1, 'Address cannot be blank'),
-  dateofbirth: z.string().optional(),
+  dateofbirth: z.string().min(1, 'Date of Birth is required'),
   mobile: z.string().regex(/^\d{10}$/, 'Mobile should have 10 digits'),
   email: z.union([z.literal(''), z.string().email('Invalid email')]),
 });
@@ -70,7 +70,7 @@ export default function EditPage() {
       lastName: patient.lastName,
       gender: patient.gender === 'female' || patient.gender === 'other' ? patient.gender : 'male',
       address: patient.address,
-      dateofbirth: formatDateInput(patient.dateofbirth),
+      dateofbirth: formatDateTimeInput(patient.dateofbirth),
       mobile: patient.mobile,
       email: patient.email,
     },
@@ -82,7 +82,7 @@ export default function EditPage() {
         patientId: patient.patientId,
         ...values,
         email: values.email || undefined,
-        dateofbirth: values.dateofbirth || null,
+        dateofbirth: toApiDateTime(values.dateofbirth),
       },
     });
 
@@ -131,7 +131,8 @@ export default function EditPage() {
           </label>
           <FormField
             label="Date of Birth"
-            type="date"
+            type="datetime-local"
+            max={nowDateTimeInput()}
             error={errors.dateofbirth?.message}
             {...register('dateofbirth')}
           />

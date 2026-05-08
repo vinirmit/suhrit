@@ -1,5 +1,5 @@
 import type { Db } from "mongodb";
-import type { ApiResult } from "./types";
+import type { ApiResult } from "../../common/types";
 
 export async function getDetails(db: Db, username: string): Promise<ApiResult> {
   const item = await db

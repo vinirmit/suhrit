@@ -1,7 +1,7 @@
 locals {
   name_prefix    = "${var.project_name}-${var.environment}"
   lambda_name    = "${local.name_prefix}-api-web"
-  dist_dir       = "${path.module}/../dist"
+  dist_dir       = "${path.module}/../dist/web-api"
   function_file  = "${local.dist_dir}/handler.js"
   cognito_issuer = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.main.id}"
 
@@ -28,16 +28,16 @@ resource "terraform_data" "build_api_lambda" {
   triggers_replace = [
     filesha256("${path.module}/../package.json"),
     filesha256("${path.module}/../tsconfig.json"),
-    filesha256("${path.module}/../src/handler.ts"),
-    filesha256("${path.module}/../src/db.ts"),
-    filesha256("${path.module}/../src/date.ts"),
-    filesha256("${path.module}/../src/mongo.ts"),
-    filesha256("${path.module}/../src/patient.ts"),
-    filesha256("${path.module}/../src/report.ts"),
-    filesha256("${path.module}/../src/types.ts"),
-    filesha256("${path.module}/../src/user.ts"),
-    filesha256("${path.module}/../src/util.ts"),
-    filesha256("${path.module}/../src/visit.ts")
+    filesha256("${path.module}/../src/common/db.ts"),
+    filesha256("${path.module}/../src/common/date.ts"),
+    filesha256("${path.module}/../src/common/mongo.ts"),
+    filesha256("${path.module}/../src/common/types.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/handler.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/patient.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/report.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/user.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/util.ts"),
+    filesha256("${path.module}/../src/lambdas/web-api/visit.ts")
   ]
 
   provisioner "local-exec" {

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormField } from '../components/form/FormField';
 import { useNotification } from '../hooks/useNotification';
 import { registerPatient } from '../services/patients';
+import { nowDateTimeInput, toApiDateTime } from '../utils/date';
 
 const patientFormSchema = z.object({
   firstName: z
@@ -18,7 +19,7 @@ const patientFormSchema = z.object({
     .regex(/^[A-Za-z\s]+$/, 'Only Alphabets are allowed in the Name'),
   gender: z.enum(['male', 'female', 'other']),
   address: z.string().min(1, 'Address cannot be blank'),
-  dateofbirth: z.string().optional(),
+  dateofbirth: z.string().min(1, 'Date of Birth is required'),
   mobile: z.string().regex(/^\d{10}$/, 'Mobile should have 10 digits'),
   email: z.union([z.literal(''), z.string().email('Invalid email')]),
 });
@@ -47,7 +48,7 @@ export default function RegisterPage() {
       lastName: '',
       gender: 'male',
       address: '',
-      dateofbirth: '2000-01-01',
+      dateofbirth: '2000-01-01T00:00',
       mobile: '',
       email: '',
     },
@@ -59,7 +60,7 @@ export default function RegisterPage() {
         patient: {
           ...values,
           email: values.email || undefined,
-          dateofbirth: values.dateofbirth || null,
+          dateofbirth: toApiDateTime(values.dateofbirth),
         },
         payment,
       });
@@ -109,8 +110,8 @@ export default function RegisterPage() {
           </label>
           <FormField
             label="Date of Birth"
-            type="date"
-            max={new Date().toISOString().slice(0, 10)}
+            type="datetime-local"
+            max={nowDateTimeInput()}
             error={errors.dateofbirth?.message}
             {...register('dateofbirth')}
           />

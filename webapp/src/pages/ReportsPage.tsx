@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../hooks/useNotification';
 import { fetchLastVisit } from '../services/patients';
 import { fetchRangeReport } from '../services/reports';
+import { endOfTodayDateTimeInput, startOfTodayDateTimeInput, toApiDateTime } from '../utils/date';
 import type { ReportPayload } from '../types/domain';
 
 const emptyReport: ReportPayload = {
@@ -19,16 +20,16 @@ export default function ReportsPage() {
   const navigate = useNavigate();
   const { notify } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(startOfTodayDateTimeInput());
+  const [endDate, setEndDate] = useState(endOfTodayDateTimeInput());
   const [report, setReport] = useState<ReportPayload>(emptyReport);
 
   const loadReport = async () => {
     try {
       setIsLoading(true);
       const response = await fetchRangeReport({
-        start_date: startDate,
-        end_date: endDate,
+        start_date: toApiDateTime(startDate),
+        end_date: toApiDateTime(endDate),
       });
 
       if (!response) {
@@ -85,7 +86,7 @@ export default function ReportsPage() {
             <span className="field__label">Start Date</span>
             <input
               className="field__control"
-              type="date"
+              type="datetime-local"
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
             />
@@ -94,7 +95,7 @@ export default function ReportsPage() {
             <span className="field__label">End Date</span>
             <input
               className="field__control"
-              type="date"
+              type="datetime-local"
               value={endDate}
               onChange={(event) => setEndDate(event.target.value)}
             />

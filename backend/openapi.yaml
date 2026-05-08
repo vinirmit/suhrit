@@ -383,8 +383,7 @@ components:
           type: string
         dateofbirth:
           type: string
-          format: date
-          nullable: true
+          format: date-time
         gender:
           type: string
         address:
@@ -408,7 +407,7 @@ components:
               type: number
             dateofbirth:
               type: string
-              format: date
+              format: date-time
     VisitProfile:
       type: object
       properties:
@@ -420,7 +419,7 @@ components:
           type: string
         lastVisitDate:
           type: string
-          format: date
+          format: date-time
         exams:
           type: object
           additionalProperties:
@@ -467,10 +466,10 @@ components:
           type: number
         visitDate:
           type: string
-          format: date
+          format: date-time
         lastVisitDate:
           type: string
-          format: date
+          format: date-time
         opdPayment:
           type: number
         profile:
@@ -509,7 +508,7 @@ components:
           type: number
         visitDate:
           type: string
-          format: date
+          format: date-time
         payment:
           type: number
         karms:
@@ -531,10 +530,10 @@ components:
           type: number
         visitDate:
           type: string
-          format: date
+          format: date-time
         lastVisitDate:
           type: string
-          format: date
+          format: date-time
         opdPayment:
           type: number
         payment:
@@ -600,10 +599,10 @@ components:
       properties:
         start_date:
           type: string
-          format: date
+          format: date-time
         end_date:
           type: string
-          format: date
+          format: date-time
     ReportPayload:
       type: object
       required: [totalOpdPayments, totalKarmaPayments, totalVisits, totalKVisits]

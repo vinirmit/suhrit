@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResult } from "aws-lambda";
-import { getDb } from "./db";
+import { getDb } from "../../common/db";
 import {
   editPatient,
   patientHistory,
@@ -8,7 +8,7 @@ import {
   searchPatient
 } from "./patient";
 import { getReport } from "./report";
-import type { ApiResult, RequestBody, RouteWithBody, RouteWithoutBody } from "./types";
+import type { ApiResult, RequestBody, RouteWithBody, RouteWithoutBody } from "../../common/types";
 import { getMedList, getTagList } from "./util";
 import { getDetails } from "./user";
 import { addToQueue, getQueue, processVisit, updateVisit } from "./visit";

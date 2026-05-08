@@ -27,7 +27,7 @@ export interface RegisterPatientPayload {
     patientId?: string;
     firstName: string;
     lastName: string;
-    dateofbirth: string | null;
+    dateofbirth: string;
     gender: string;
     address: string;
     mobile: string;

@@ -1,5 +1,5 @@
 import type { Db } from "mongodb";
-import type { ApiResult } from "./types";
+import type { ApiResult } from "../../common/types";
 
 export async function getMedList(db: Db): Promise<ApiResult> {
   const list = await db.collection("history").distinct("visits.medicines.name");

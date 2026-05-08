@@ -1,7 +1,7 @@
 import type { Db } from "mongodb";
-import { calculateAge, formatDate, parseDate, todayString } from "./date";
-import { getNextId } from "./mongo";
-import type { ApiResult, MongoDoc, RequestBody } from "./types";
+import { calculateAge, formatDateTime, parseDateTime, todayString } from "../../common/date";
+import { getNextId } from "../../common/mongo";
+import type { ApiResult, MongoDoc, RequestBody } from "../../common/types";
 
 export async function searchPatient(db: Db, body: RequestBody): Promise<ApiResult> {
   const criteria: MongoDoc = {};
@@ -23,7 +23,7 @@ export async function searchPatient(db: Db, body: RequestBody): Promise<ApiResul
 
   for (const item of items) {
     item.age = calculateAge(item.dateofbirth);
-    item.dateofbirth = formatDate(item.dateofbirth);
+    item.dateofbirth = formatDateTime(item.dateofbirth);
   }
 
   if (items.length > 0) {
@@ -36,7 +36,12 @@ export async function searchPatient(db: Db, body: RequestBody): Promise<ApiResul
 export async function registerPatient(db: Db, body: RequestBody): Promise<ApiResult> {
   const patient = { ...body.patient };
   const payment = body.payment;
-  patient.dateofbirth = parseDate(patient.dateofbirth);
+
+  if (!patient.dateofbirth) {
+    return { success: false, message: "Date of Birth is required" };
+  }
+
+  patient.dateofbirth = parseDateTime(patient.dateofbirth);
 
   try {
     patient.patientId = await getNextId(db, "patient");
@@ -69,7 +74,11 @@ export async function registerPatient(db: Db, body: RequestBody): Promise<ApiRes
 }
 
 export async function editPatient(db: Db, body: RequestBody): Promise<ApiResult> {
-  const patient = { ...body.patient, dateofbirth: parseDate(body.patient.dateofbirth) };
+  if (!body.patient?.dateofbirth) {
+    return { success: false, message: "Date of Birth is required" };
+  }
+
+  const patient = { ...body.patient, dateofbirth: parseDateTime(body.patient.dateofbirth) };
 
   try {
     await db.collection("patients").findOneAndReplace({ patientId: patient.patientId }, patient);
@@ -85,11 +94,11 @@ export async function patientLastVisit(db: Db, body: RequestBody): Promise<ApiRe
     const item = await db.collection("history").findOne({ patientId: body.patientId });
 
     if (!item) {
-      return { false: true, message: "No Previous Visits found" };
+      return { success: false, message: "No Previous Visits found" };
     }
 
     if (item.visits.length === 0) {
-      return { false: true, message: "No Previous OPD Visits found" };
+      return { success: false, message: "No Previous OPD Visits found" };
     }
 
     const payload = { ...item.visits[0] };
@@ -98,7 +107,7 @@ export async function patientLastVisit(db: Db, body: RequestBody): Promise<ApiRe
       .findOne({ patientId: body.patientId }, { projection: { _id: 0, dateofbirth: 0 } });
 
     payload.patient = patient;
-    payload.visitDate = formatDate(payload.visitDate);
+    payload.visitDate = formatDateTime(payload.visitDate);
     return { success: true, payload };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : String(error) };
@@ -113,10 +122,10 @@ export async function patientHistory(db: Db, body: RequestBody): Promise<ApiResu
       delete (item as Record<string, unknown>)._id;
 
       for (const visit of item.visits) {
-        visit.visitDate = formatDate(visit.visitDate);
+        visit.visitDate = formatDateTime(visit.visitDate);
       }
       for (const visit of item.kvisits) {
-        visit.visitDate = formatDate(visit.visitDate);
+        visit.visitDate = formatDateTime(visit.visitDate);
       }
 
       return { success: true, payload: item };

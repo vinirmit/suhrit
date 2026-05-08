@@ -2,19 +2,20 @@
 
 TypeScript backend workspace for Lambda functions and deployment infrastructure.
 
-The first Lambda here is a TypeScript port of the `suhrit-api-web` Python Lambda. Its endpoint payloads and response envelopes are intentionally kept compatible with the Python implementation for now.
+The first Lambda here lives in `src/lambdas/web-api/` and is a TypeScript port of the `suhrit-api-web` Python Lambda. Shared backend code lives in `src/common/`.
 
 ## Scripts
 
 - `npm run typecheck` verifies TypeScript.
-- `npm run build` bundles `src/handler.ts` to `dist/handler.js` with esbuild.
+- `npm run build` bundles `src/lambdas/web-api/handler.ts` to `dist/web-api/handler.js` with esbuild.
+- `npm run build:web-api` builds only the web API Lambda.
 
 ## Lambda Handler
 
 Configure the AWS Lambda handler as:
 
 ```text
-dist/handler.lambdaHandler
+handler.lambdaHandler
 ```
 
 The environment variables are the same as the Python Lambda:

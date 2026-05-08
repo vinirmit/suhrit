@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../app/auth';
 import { useNotification } from '../hooks/useNotification';
 import { processVisit, pushBackVisit } from '../services/visits';
+import { formatDisplayDateTime } from '../utils/date';
 import { removeEmptyObjectValues } from '../utils/forms';
 import type { Visit } from '../types/domain';
 
@@ -107,7 +108,7 @@ export default function PrintPage() {
               <strong>Patient Id:</strong> {visit.patient.patientId}
             </p>
             <p>
-              <strong>Visit Date:</strong> {visit.visitDate}
+              <strong>Visit Date:</strong> {formatDisplayDateTime(visit.visitDate)}
             </p>
           </div>
           <div className="print-header__logo">

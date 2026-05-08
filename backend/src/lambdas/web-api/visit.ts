@@ -1,7 +1,7 @@
 import type { Db } from "mongodb";
-import { formatDate, parseDate, todayString } from "./date";
-import { getNextId } from "./mongo";
-import type { ApiResult, RequestBody } from "./types";
+import { formatDateTime, parseDateTime, todayString } from "../../common/date";
+import { getNextId } from "../../common/mongo";
+import type { ApiResult, RequestBody } from "../../common/types";
 
 export async function addToQueue(db: Db, body: RequestBody): Promise<ApiResult> {
   console.log("In add_to_queue", body);
@@ -29,7 +29,7 @@ export async function addToQueue(db: Db, body: RequestBody): Promise<ApiResult> 
       body.medicines = lastVisit.medicines;
       body.pathya = lastVisit.pathya;
       body.apathya = lastVisit.apathya;
-      body.lastVisitDate = formatDate(lastVisit.visitDate);
+      body.lastVisitDate = formatDateTime(lastVisit.visitDate);
     }
 
     await db.collection("wip").insertOne(body);
@@ -63,7 +63,7 @@ export async function updateVisit(db: Db, body: RequestBody): Promise<ApiResult>
 
 export async function processVisit(db: Db, body: RequestBody): Promise<ApiResult> {
   try {
-    body.visitDate = parseDate(body.visitDate);
+    body.visitDate = parseDateTime(body.visitDate);
 
     if (body.type === "kvisit") {
       const patientId = body.patient.patientId;

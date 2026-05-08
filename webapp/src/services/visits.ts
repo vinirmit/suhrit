@@ -42,6 +42,5 @@ export async function processVisit(
 export async function pushBackVisit(
   payload: Visit,
 ): Promise<z.infer<typeof visitMutationResponseSchema>> {
-  return http.post('/visit/pushback', payload);
+  return updateVisit(payload);
 }
-

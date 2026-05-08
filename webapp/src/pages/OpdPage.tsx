@@ -6,7 +6,7 @@ import { useNotification } from '../hooks/useNotification';
 import { fetchPatientHistory } from '../services/patients';
 import { fetchMedicineList, fetchTagOptions, mergeTagOptions, updateCachedTags } from '../services/utils';
 import { updateVisit } from '../services/visits';
-import { formatDisplayDate } from '../utils/date';
+import { formatDisplayDateTime } from '../utils/date';
 import { removeEmptyObjectValues } from '../utils/forms';
 import type {
   KarmaVisit,
@@ -538,7 +538,7 @@ export default function OpdPage() {
             <div className="field">
               <span className="field__label">Last Visit</span>
               <div className="surface pad-surface-sm">
-                <p className="muted">{visit.lastVisitDate || '-'}</p>
+                <p className="muted">{formatDisplayDateTime(visit.lastVisitDate)}</p>
               </div>
             </div>
           </div>
@@ -1027,7 +1027,7 @@ function PatientProgressTable({ visits }: { visits: Visit[] }) {
         <tbody>
           {visits.map((item, index) => (
             <tr key={`${item.visitId}-${index}`}>
-              <td>{formatDisplayDate(item.visitDate)}</td>
+              <td>{formatDisplayDateTime(item.visitDate)}</td>
               <td>{item.profile.readings.Weight ?? '-'}</td>
               <td>{getTagNames(item.profile.tags)}</td>
               <td>{item.profile.exams['चयापचय स्थिति'] ?? '-'}</td>
@@ -1073,7 +1073,7 @@ function OpdHistoryPanel({
             onClick={() => onSelectIndex(index)}
             type="button"
           >
-            {formatDisplayDate(item.visitDate)}
+            {formatDisplayDateTime(item.visitDate)}
           </button>
         ))}
       </div>
@@ -1152,7 +1152,7 @@ function KarmaHistoryTable({ visits }: { visits: KarmaVisit[] }) {
         <tbody>
           {visits.map((visit, index) => (
             <tr key={`${visit.visitId}-${index}`}>
-              <td>{formatDisplayDate(visit.visitDate)}</td>
+              <td>{formatDisplayDateTime(visit.visitDate)}</td>
               <td>
                 <div className="tag-list">
                   {Object.keys(visit.karms).map((key) => (

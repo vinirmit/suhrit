@@ -1,10 +1,11 @@
 import type { Db } from "mongodb";
-import { parseDate } from "./date";
-import type { ApiResult, RequestBody } from "./types";
+import { isSingleDayRange, parseDateTime } from "../../common/date";
+import type { ApiResult, RequestBody } from "../../common/types";
 
 export async function getReport(db: Db, body: RequestBody): Promise<ApiResult> {
-  const startDate = parseDate(body.start_date);
-  const endDate = parseDate(body.end_date);
+  const startDate = parseDateTime(body.start_date);
+  const endDate = parseDateTime(body.end_date);
+  const includeDailyLists = isSingleDayRange(startDate, endDate);
 
   const pipeline = [
     {
@@ -17,8 +18,8 @@ export async function getReport(db: Db, body: RequestBody): Promise<ApiResult> {
             as: "item",
             cond: {
               $and: [
-                { $gte: ["$$item.visitDate", startDate] },
-                { $lte: ["$$item.visitDate", endDate] }
+                { $gte: [{ $toDate: "$$item.visitDate" }, startDate] },
+                { $lte: [{ $toDate: "$$item.visitDate" }, endDate] }
               ]
             }
           }
@@ -29,8 +30,8 @@ export async function getReport(db: Db, body: RequestBody): Promise<ApiResult> {
             as: "item",
             cond: {
               $and: [
-                { $gte: ["$$item.visitDate", startDate] },
-                { $lte: ["$$item.visitDate", endDate] }
+                { $gte: [{ $toDate: "$$item.visitDate" }, startDate] },
+                { $lte: [{ $toDate: "$$item.visitDate" }, endDate] }
               ]
             }
           }
@@ -86,13 +87,13 @@ export async function getReport(db: Db, body: RequestBody): Promise<ApiResult> {
     totalSums.totalVisits += entry.totalVisits;
     totalSums.totalKVisits += entry.totalKVisits;
 
-    if (body.start_date === body.end_date) {
+    if (includeDailyLists) {
       totalSums.visitsList.push(...entry.visitsList);
       totalSums.kvisitsList.push(...entry.kvisitsList);
     }
   }
 
-  if (body.start_date === body.end_date) {
+  if (includeDailyLists) {
     for (const item of totalSums.visitsList) {
       const patientDetails = await db.collection("patients").findOne(
         { patientId: item.patientId },
